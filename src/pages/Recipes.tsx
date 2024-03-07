@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, Heart, Clock, Users, Star } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import AuthModal from '@/pages/Auth';
 
 interface Recipe {
   id: string;
@@ -22,13 +23,14 @@ const Recipes = () => {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedNutrients, setSelectedNutrients] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const allergens = [
     'Gluten', 'Dairy', 'Nuts', 'Eggs', 'Soy', 'Shellfish', 'Fish', 'Sesame'
   ];
 
   const nutrients = [
-    'High Protein', 'High Fiber', 'Low Sugar', 'Iron Rich', 'Calcium Rich', 
+    'High Protein', 'High Fiber', 'Low Sugar', 'Iron Rich', 'Calcium Rich',
     'Vitamin C', 'Heart Healthy', 'Low Sodium'
   ];
 
@@ -110,7 +112,7 @@ const Recipes = () => {
 
   useEffect(() => {
     setRecipes(mockRecipes);
-    
+
     // Check for filter from URL params
     const filterParam = searchParams.get('filter');
     if (filterParam) {
@@ -124,14 +126,14 @@ const Recipes = () => {
   }, [searchParams]);
 
   const toggleLike = (recipeId: string) => {
-    setRecipes(prev => 
-      prev.map(recipe => 
-        recipe.id === recipeId 
+    setRecipes(prev =>
+      prev.map(recipe =>
+        recipe.id === recipeId
           ? { ...recipe, isLiked: !recipe.isLiked }
           : recipe
       )
     );
-    
+
     // In a real app, this would save to localStorage or backend
     const savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
     const recipe = recipes.find(r => r.id === recipeId);
@@ -149,25 +151,25 @@ const Recipes = () => {
   };
 
   const filteredRecipes = recipes.filter(recipe => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.ingredients.some(ing => ing.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesAllergens = selectedAllergens.length === 0 || 
-      selectedAllergens.every(allergen => 
+
+    const matchesAllergens = selectedAllergens.length === 0 ||
+      selectedAllergens.every(allergen =>
         recipe.tags.some(tag => tag.toLowerCase().includes(allergen.toLowerCase() + '-free'))
       );
-    
+
     const matchesNutrients = selectedNutrients.length === 0 ||
-      selectedNutrients.some(nutrient => 
+      selectedNutrients.some(nutrient =>
         recipe.tags.some(tag => tag.toLowerCase().includes(nutrient.toLowerCase()))
       );
-    
+
     return matchesSearch && matchesAllergens && matchesNutrients;
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pt-16 bg-[#E6F2EA]">
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4 allerchef-text-gradient">Recipe Discovery</h1>
@@ -188,7 +190,7 @@ const Recipes = () => {
               className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-          
+
           {/* Filter Button */}
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -210,17 +212,13 @@ const Recipes = () => {
                   <button
                     key={allergen}
                     onClick={() => {
-                      setSelectedAllergens(prev => 
+                      setSelectedAllergens(prev =>
                         prev.includes(allergen)
                           ? prev.filter(a => a !== allergen)
                           : [...prev, allergen]
                       );
                     }}
-                    className={`allerchef-pill ${
-                      selectedAllergens.includes(allergen)
-                        ? 'bg-destructive text-destructive-foreground border-destructive'
-                        : ''
-                    }`}
+                    className={`allerchef-pill${selectedAllergens.includes(allergen) ? ' selected' : ''}`}
                   >
                     {allergen}
                   </button>
@@ -236,17 +234,13 @@ const Recipes = () => {
                   <button
                     key={nutrient}
                     onClick={() => {
-                      setSelectedNutrients(prev => 
+                      setSelectedNutrients(prev =>
                         prev.includes(nutrient)
                           ? prev.filter(n => n !== nutrient)
                           : [...prev, nutrient]
                       );
                     }}
-                    className={`allerchef-pill ${
-                      selectedNutrients.includes(nutrient)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : ''
-                    }`}
+                    className={`allerchef-pill${selectedNutrients.includes(nutrient) ? ' selected' : ''}`}
                   >
                     {nutrient}
                   </button>
@@ -267,7 +261,7 @@ const Recipes = () => {
       {/* Recipe Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRecipes.map(recipe => (
-          <div key={recipe.id} className="allerchef-card group">
+          <div key={recipe.id} className="allerchef-card group flex flex-col justify-between min-h-[420px]">
             {/* Recipe Image */}
             <div className="relative mb-4">
               <img
@@ -275,26 +269,25 @@ const Recipes = () => {
                 alt={recipe.title}
                 className="w-full h-48 object-cover rounded-xl"
               />
-              <button
-                onClick={() => toggleLike(recipe.id)}
-                className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-all duration-300"
-              >
-                <Heart 
-                  className={`h-5 w-5 ${
-                    recipe.isLiked 
-                      ? 'fill-red-500 text-red-500' 
+              {localStorage.getItem('allerchef_user') && (
+                <button
+                  onClick={() => toggleLike(recipe.id)}
+                  className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-all duration-300"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${recipe.isLiked
+                      ? 'fill-red-500 text-red-500'
                       : 'text-muted-foreground'
-                  }`} 
-                />
-              </button>
+                      }`}
+                  />
+                </button>
+              )}
             </div>
-
             {/* Recipe Info */}
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 flex flex-col">
               <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
                 {recipe.title}
               </h3>
-              
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
@@ -305,7 +298,6 @@ const Recipes = () => {
                   {recipe.servings} servings
                 </div>
               </div>
-
               <div className="flex justify-between items-center">
                 <div className="text-sm">
                   <span className="font-medium">{recipe.calories}</span> cal
@@ -317,8 +309,7 @@ const Recipes = () => {
                   <span className="text-sm font-medium">4.8</span>
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 mb-2">
                 {recipe.tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
@@ -328,11 +319,28 @@ const Recipes = () => {
                   </span>
                 ))}
               </div>
+              <div className="flex-1 justify-center flex items-end">
+                {localStorage.getItem('allerchef_user') ? (
+                  <Link
+                    to={`/recipes/${recipe.id}`}
+                    className="allerchef-btn-secondary w-full sm:w-auto"
+                  >
+                    View Recipe
+                  </Link>
+                ) : (
+                  <button
+                    className="allerchef-btn-secondary w-full sm:w-auto"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    View Recipe
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
       </div>
-
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} hideClose={true} />
       {/* Empty State */}
       {filteredRecipes.length === 0 && (
         <div className="text-center py-16">

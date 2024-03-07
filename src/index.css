@@ -1,3 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+html,
+body,
+#root {
+  font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  background: #E6F2EA;
+}
+
+@keyframes beat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  20% {
+    transform: scale(1.2);
+  }
+
+  40% {
+    transform: scale(0.95);
+  }
+
+  60% {
+    transform: scale(1.1);
+  }
+
+  80% {
+    transform: scale(0.98);
+  }
+}
+
+.animate-beat {
+  animation: beat 1.2s infinite;
+}
+
+* {
+  font-family: inherit;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,25 +50,32 @@ All colors MUST be HSL format for proper theming.
 @layer base {
   :root {
     /* AllerChef Green Color Palette */
-    --background: 0 0% 100%; /* #FFFFFF - Light Neutral */
-    --foreground: 0 0% 38%; /* #616161 - Contrast Grey */
+    --background: 0 0% 100%;
+    /* #FFFFFF - Light Neutral */
+    --foreground: 0 0% 38%;
+    /* #616161 - Contrast Grey */
 
-    --card: 0 0% 100%; /* #FFFFFF - White cards */
+    --card: 0 0% 100%;
+    /* #FFFFFF - White cards */
     --card-foreground: 0 0% 38%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 38%;
 
-    --primary: 122 39% 49%; /* #4CAF50 - Primary Green */
+    --primary: 142 71% 36%;
+    /* #16a34a - Primary Green */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 120 60% 96%; /* #F0FAF4 - Soft Green Background */
+    --secondary: 120 60% 96%;
+    /* #F0FAF4 - Soft Green Background */
     --secondary-foreground: 0 0% 38%;
 
-    --accent: 122 55% 39%; /* #388E3C - Accent Dark Green */
+    --accent: 142 71% 36%;
+    /* #16a34a - Accent Green (matches primary) */
     --accent-foreground: 0 0% 100%;
 
-    --muted: 120 60% 96%; /* #F0FAF4 - Soft Green for muted elements */
+    --muted: 120 60% 96%;
+    /* #F0FAF4 - Soft Green for muted elements */
     --muted-foreground: 0 0% 53%;
 
     --destructive: 0 84.2% 60.2%;
@@ -35,19 +83,26 @@ All colors MUST be HSL format for proper theming.
 
     --border: 120 20% 90%;
     --input: 120 20% 95%;
-    --ring: 122 39% 49%; /* Primary green ring */
+    --ring: 142 71% 36%;
+    /* Primary green ring */
 
-    --radius: 1rem; /* rounded-2xl as default */
+    --radius: 1rem;
+    /* rounded-2xl as default */
 
     /* AllerChef specific design tokens */
-    --allerchef-primary: 122 39% 49%; /* #4CAF50 */
-    --allerchef-soft-bg: 120 60% 96%; /* #F0FAF4 */
-    --allerchef-accent: 122 55% 39%; /* #388E3C */
-    --allerchef-neutral: 0 0% 100%; /* #FFFFFF */
-    --allerchef-text: 0 0% 38%; /* #616161 */
+    --allerchef-primary: 142 71% 36%;
+    /* #16a34a */
+    --allerchef-soft-bg: 120 60% 96%;
+    /* #F0FAF4 */
+    --allerchef-accent: 142 71% 36%;
+    /* #16a34a */
+    --allerchef-neutral: 0 0% 100%;
+    /* #FFFFFF */
+    --allerchef-text: 0 0% 38%;
+    /* #616161 */
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(122 39% 49%), hsl(122 55% 39%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 71% 36%), hsl(142 71% 36%));
     --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%), hsl(120 60% 96%));
 
     /* Shadows */
@@ -124,35 +179,82 @@ All colors MUST be HSL format for proper theming.
 }
 
 @layer components {
+
   /* AllerChef Component Classes */
   .allerchef-card {
-    @apply bg-white rounded-2xl shadow-md p-6 transition-all duration-300;
+    @apply rounded-2xl shadow-xl p-6 transition-all duration-300 mb-4;
+    background: #FAFAF7;
+    box-shadow: 0 4px 24px 0 hsl(122 39% 49% / 0.12), 0 0px 2px 0 hsl(122 39% 49% / 0.10);
   }
-  
+
   .allerchef-card:hover {
     @apply shadow-lg transform translate-y-[-2px];
   }
-  
+
   .allerchef-btn-primary {
-    @apply bg-primary text-primary-foreground rounded-2xl px-6 py-3 font-semibold transition-all duration-300 hover:bg-accent hover:shadow-lg;
+    @apply bg-primary text-primary-foreground rounded-2xl px-6 py-3 font-semibold shadow transition-all duration-200;
+    border: none;
   }
-  
+
+  .allerchef-btn-primary:hover,
+  .allerchef-btn-primary:focus {
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 4px 16px 0 hsl(142, 71%, 36%, 0.15);
+    transform: scale(1.04);
+  }
+
   .allerchef-btn-secondary {
-    @apply bg-secondary text-secondary-foreground rounded-2xl px-6 py-3 font-semibold transition-all duration-300 hover:bg-muted;
+    @apply bg-white text-primary border-2 border-primary rounded-2xl px-6 py-3 font-semibold shadow transition-all duration-200;
   }
-  
+
+  .allerchef-btn-secondary:hover,
+  .allerchef-btn-secondary:focus {
+    background: #f3fef6;
+    color: #16a34a;
+    border-color: #16a34a;
+    box-shadow: 0 4px 16px 0 hsl(142, 71%, 36%, 0.10);
+    transform: scale(1.04);
+  }
+
   .allerchef-pill {
-    @apply bg-white border border-border rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-secondary hover:border-primary;
+    @apply bg-white border-2 border-primary text-primary rounded-full px-4 py-2 text-sm font-medium shadow transition-all duration-200;
   }
-  
+
+  .allerchef-pill:hover,
+  .allerchef-pill:focus {
+    background: #f3fef6;
+    color: #16a34a;
+    border-color: #16a34a;
+    box-shadow: 0 2px 8px 0 hsl(142, 71%, 36%, 0.10);
+    transform: scale(1.04);
+  }
+
+  .allerchef-pill.selected {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+  }
+
   .allerchef-gradient {
     background: var(--gradient-primary);
   }
-  
+
   .allerchef-text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+}
+
+main {
+  margin-bottom: 0 !important;
+}
+
+.footer-quick-link:hover,
+.footer-quick-link:focus {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

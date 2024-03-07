@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Heart, Clock, Users, Star, ChefHat } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Recipe {
   id: string;
@@ -17,11 +17,15 @@ interface Recipe {
 
 const Saved = () => {
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!localStorage.getItem('allerchef_user')) {
+      navigate('/auth');
+    }
     const saved = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
     setSavedRecipes(saved);
-  }, []);
+  }, [navigate]);
 
   const removeSaved = (recipeId: string) => {
     const updated = savedRecipes.filter(recipe => recipe.id !== recipeId);
@@ -30,7 +34,7 @@ const Saved = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pt-16 bg-[#E6F2EA]">
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4 allerchef-text-gradient">Saved Recipes</h1>
@@ -38,7 +42,7 @@ const Saved = () => {
       </div>
 
       {/* Stats Card */}
-      <div className="allerchef-card bg-secondary">
+      <div className="allerchef-card bg-[#fafaf7]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div>
             <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -48,7 +52,7 @@ const Saved = () => {
           <div>
             <Clock className="h-8 w-8 text-accent mx-auto mb-2" />
             <div className="text-2xl font-bold text-foreground">
-              {Math.round(savedRecipes.reduce((acc, recipe) => 
+              {Math.round(savedRecipes.reduce((acc, recipe) =>
                 acc + parseInt(recipe.cookTime), 0) / savedRecipes.length || 0)}m
             </div>
             <div className="text-muted-foreground">Avg Cook Time</div>
@@ -86,7 +90,7 @@ const Saved = () => {
                 <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
                   {recipe.title}
                 </h3>
-                
+
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
@@ -132,8 +136,8 @@ const Saved = () => {
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             Start exploring our recipe collection and save your favorites for easy access later.
           </p>
-          <Link 
-            to="/recipes" 
+          <Link
+            to="/recipes"
             className="allerchef-btn-primary inline-flex items-center gap-2"
           >
             <Heart className="h-5 w-5" />
@@ -147,13 +151,13 @@ const Saved = () => {
         <div className="allerchef-card text-center">
           <h3 className="text-xl font-semibold mb-4 text-foreground">Quick Actions</h3>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/recipes" 
+            <Link
+              to="/recipes"
               className="allerchef-btn-primary"
             >
               Find More Recipes
             </Link>
-            <button 
+            <button
               onClick={() => {
                 // In a real app, this would generate a shopping list
                 alert('Shopping list feature coming soon!');
