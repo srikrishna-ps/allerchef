@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
+# AllerChef
 
-## Project info
+AllerChef is a modern web application for discovering, saving, and managing allergy-friendly recipes. It features authentication, recipe detail pages, dietician profiles, and a responsive, accessible UI built with React, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/d909c185-19af-4e2e-a5bd-af4f0543c618
+## Features
+- User authentication (sign up, login, logout, delete account)
+- Recipe discovery with filtering by allergens and nutrients
+- Detailed recipe pages with ingredients, instructions, and nutrition info
+- Save and manage favorite recipes
+- Dietician profiles with specialization filters
+- Responsive, accessible design with modern UI components
 
-## How can I edit this code?
+## Tech Stack
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS (with shadcn-ui components)
+- Radix UI (for accessible dialogs, menus, etc.)
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
+- Node.js (v18 or newer recommended)
+- npm (v9 or newer)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d909c185-19af-4e2e-a5bd-af4f0543c618) and start prompting.
+### Installation
+1. Clone the repository:
+   ```sh
+   git clone <REPO_URL>
+   cd allerchef-1
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Start the development server:
+   ```sh
+   npm run dev
+   ```
+   The app will be available at http://localhost:8080 (or the port shown in your terminal).
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+### Build for Production
+To build the app for production:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+npm run build
+```
+The output will be in the `dist/` directory.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+To preview the production build locally:
+```sh
+npm run preview
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
+- `src/` - Main source code
+  - `components/` - Reusable UI and layout components
+  - `pages/` - Top-level pages (Home, Recipes, Dieticians, Auth, etc.)
+  - `hooks/` - Custom React hooks
+  - `lib/` - Utility functions
+  - `assets/` - Images and static assets
+- `public/` - Static files
+- `index.html` - Main HTML entry point
+- `tailwind.config.ts` - Tailwind CSS configuration
+- `postcss.config.js` - PostCSS configuration
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Troubleshooting Tailwind CSS / PostCSS
+- Ensure `src/index.css` is imported in your main entry file (e.g., `main.tsx`).
+- Only use `@tailwind` and `@apply` in CSS files processed by Tailwind (e.g., `src/index.css`).
+- If you see errors like `unknown at rule @tailwind` or `@apply`, make sure you are running the app with Vite (`npm run dev`) and that your dependencies are installed.
+- If issues persist, try deleting `node_modules` and reinstalling:
+  ```sh
+  rm -rf node_modules
+  npm install
+  ```
 
-**Use GitHub Codespaces**
+## License
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/d909c185-19af-4e2e-a5bd-af4f0543c618) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+[Specify your license here]
