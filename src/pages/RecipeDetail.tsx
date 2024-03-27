@@ -1,251 +1,422 @@
-import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { Clock, Users, Star, ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Heart, Clock, Users, Star, ArrowLeft, ChefHat, Utensils } from "lucide-react";
+import { useAuthStore } from "../context/AuthContext";
 
 interface Recipe {
-    id: string;
+    _id?: string;
+    id?: number;
+    spoonacularId?: string;
     title: string;
     image: string;
-    cookTime: string;
-    servings: number;
-    calories: number;
-    protein: string;
-    tags: string[];
-    ingredients: string[];
-    isLiked: boolean;
-    instructions: string[];
-    nutrition: { [key: string]: string | number };
+    summary: string;
+    instructions: string;
+    extendedIngredients?: Array<{
+        id: number;
+        name: string;
+        amount: number;
+        unit: string;
+    }>;
+    ingredients?: Array<{
+        id: number;
+        name: string;
+        amount: number;
+        unit: string;
+    }>;
+    nutrition?: {
+        calories?: number;
+        protein?: string;
+        fat?: string;
+        carbs?: string;
+        nutrients?: Array<{
+            name: string;
+            amount: number;
+            unit: string;
+        }>;
+    };
+    cookTime?: number;
+    readyInMinutes?: number;
+    servings?: number;
+    cuisine?: string;
+    cuisines?: string[];
+    diet?: string[];
+    diets?: string[];
+    tags?: string[];
+    difficulty?: string;
+    rating?: number;
+    reviewCount?: number;
+    aggregateLikes?: number;
 }
 
-// Mock data (should match Recipes.tsx, but with instructions and nutrition)
-const mockRecipes: Recipe[] = [
-    {
-        id: '1',
-        title: 'Quinoa Buddha Bowl with Tahini Dressing',
-        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-        cookTime: '25 min',
-        servings: 2,
-        calories: 420,
-        protein: '18g',
-        tags: ['Vegan', 'Gluten-Free', 'High Protein'],
-        ingredients: ['Quinoa', 'Chickpeas', 'Avocado', 'Tahini'],
-        isLiked: false,
-        instructions: [
-            'Cook quinoa according to package instructions.',
-            'Roast chickpeas until crispy.',
-            'Slice avocado.',
-            'Whisk tahini with lemon juice and water for dressing.',
-            'Assemble bowl and drizzle with dressing.'
-        ],
-        nutrition: {
-            Calories: 420,
-            Protein: '18g',
-            Carbs: '60g',
-            Fat: '14g',
-            Fiber: '10g'
-        }
-    },
-    {
-        id: '2',
-        title: 'Dairy-Free Creamy Mushroom Risotto',
-        image: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=400',
-        cookTime: '35 min',
-        servings: 4,
-        calories: 380,
-        protein: '12g',
-        tags: ['Dairy-Free', 'Vegetarian', 'Comfort Food'],
-        ingredients: ['Arborio Rice', 'Mushrooms', 'Coconut Milk', 'Nutritional Yeast'],
-        isLiked: false,
-        instructions: [
-            'Sauté mushrooms until golden.',
-            'Add rice and stir for 2 minutes.',
-            'Gradually add broth, stirring constantly.',
-            'Stir in coconut milk and nutritional yeast at the end.',
-            'Serve creamy and hot.'
-        ],
-        nutrition: {
-            Calories: 380,
-            Protein: '12g',
-            Carbs: '68g',
-            Fat: '8g',
-            Fiber: '4g'
-        }
-    },
-    {
-        id: '3',
-        title: 'Nut-Free Energy Balls',
-        image: 'https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=400',
-        cookTime: '15 min',
-        servings: 12,
-        calories: 120,
-        protein: '4g',
-        tags: ['Nut-Free', 'No-Bake', 'Healthy Snack'],
-        ingredients: ['Dates', 'Sunflower Seeds', 'Cocoa Powder', 'Coconut'],
-        isLiked: true,
-        instructions: [
-            'Blend dates and sunflower seeds until sticky.',
-            'Add cocoa powder and coconut, blend again.',
-            'Roll into balls and chill before serving.'
-        ],
-        nutrition: {
-            Calories: 120,
-            Protein: '4g',
-            Carbs: '18g',
-            Fat: '4g',
-            Fiber: '3g'
-        }
-    },
-    {
-        id: '4',
-        title: 'Mediterranean Herb-Crusted Salmon',
-        image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400',
-        cookTime: '20 min',
-        servings: 2,
-        calories: 350,
-        protein: '28g',
-        tags: ['High Protein', 'Heart Healthy', 'Gluten-Free'],
-        ingredients: ['Salmon', 'Herbs', 'Olive Oil', 'Lemon'],
-        isLiked: false,
-        instructions: [
-            'Preheat oven to 200°C (400°F).',
-            'Coat salmon with olive oil and herbs.',
-            'Bake for 12-15 minutes.',
-            'Squeeze lemon over before serving.'
-        ],
-        nutrition: {
-            Calories: 350,
-            Protein: '28g',
-            Carbs: '2g',
-            Fat: '22g',
-            Fiber: '0g'
-        }
-    },
-    {
-        id: '5',
-        title: 'Coconut Flour Pancakes',
-        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400',
-        cookTime: '15 min',
-        servings: 3,
-        calories: 200,
-        protein: '8g',
-        tags: ['Gluten-Free', 'Dairy-Free', 'Low Sugar'],
-        ingredients: ['Coconut Flour', 'Eggs', 'Almond Milk', 'Vanilla'],
-        isLiked: false,
-        instructions: [
-            'Mix all ingredients until smooth.',
-            'Pour batter onto hot skillet.',
-            'Cook until bubbles form, then flip.',
-            'Serve warm with toppings of choice.'
-        ],
-        nutrition: {
-            Calories: 200,
-            Protein: '8g',
-            Carbs: '16g',
-            Fat: '10g',
-            Fiber: '5g'
-        }
-    },
-    {
-        id: '6',
-        title: 'Iron-Rich Spinach and Lentil Curry',
-        image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400',
-        cookTime: '30 min',
-        servings: 4,
-        calories: 280,
-        protein: '15g',
-        tags: ['Vegan', 'Iron Rich', 'High Fiber'],
-        ingredients: ['Red Lentils', 'Spinach', 'Coconut Milk', 'Turmeric'],
-        isLiked: false,
-        instructions: [
-            'Cook lentils until soft.',
-            'Add spinach and spices, simmer.',
-            'Stir in coconut milk and cook 5 more minutes.',
-            'Serve with rice or flatbread.'
-        ],
-        nutrition: {
-            Calories: 280,
-            Protein: '15g',
-            Carbs: '42g',
-            Fat: '6g',
-            Fiber: '9g'
-        }
-    }
-];
-
-const RecipeDetail = () => {
-    const { id } = useParams();
+const RecipeDetail: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const [recipe, setRecipe] = useState<Recipe | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const { isLoggedIn, savedRecipes, addSavedRecipe, removeSavedRecipe } = useAuthStore();
 
     useEffect(() => {
-        const found = mockRecipes.find(r => r.id === id);
-        setRecipe(found || null);
+        if (id) {
+            fetchRecipe();
+        }
     }, [id]);
 
-    if (!recipe) {
+    const fetchRecipe = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            let response = await fetch(`/api/recipes/${id}`);
+            let data;
+            if (!response.ok) {
+                // Fallback: try Spoonacular endpoint
+                response = await fetch(`/api/recipes/spoonacular/${id}`);
+                if (!response.ok) {
+                    throw new Error('Recipe not found');
+                }
+            }
+            data = await response.json();
+            // console.log('Recipe data received:', data); // Debug log
+            setRecipe(data);
+        } catch (err) {
+            setError('Failed to load recipe');
+            console.error('Error fetching recipe:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLikeToggle = async () => {
+        if (!isLoggedIn || !recipe) return;
+
+        try {
+            const recipeId = recipe._id || recipe.spoonacularId || recipe.id?.toString() || '';
+            if (isRecipeSaved(recipeId)) {
+                await removeSavedRecipe(recipeId);
+            } else {
+                await addSavedRecipe(recipeId);
+            }
+        } catch (error) {
+            console.error('Error toggling recipe save:', error);
+        }
+    };
+
+    const isRecipeSaved = (recipeId: string) => savedRecipes.includes(recipeId);
+
+    const getDifficultyColor = (difficulty: string) => {
+        switch (difficulty.toLowerCase()) {
+            case 'easy': return 'text-green-600 bg-green-100';
+            case 'medium': return 'text-yellow-600 bg-yellow-100';
+            case 'hard': return 'text-red-600 bg-red-100';
+            default: return 'text-gray-600 bg-gray-100';
+        }
+    };
+
+    // Helper function to get ingredients
+    const getIngredients = () => {
+        console.log('getIngredients called with recipe:', recipe);
+        if (recipe?.extendedIngredients && recipe.extendedIngredients.length > 0) {
+            console.log('Using extendedIngredients:', recipe.extendedIngredients);
+            return recipe.extendedIngredients;
+        }
+        if (recipe?.ingredients && recipe.ingredients.length > 0) {
+            console.log('Using ingredients:', recipe.ingredients);
+            return recipe.ingredients;
+        }
+        console.log('No ingredients found');
+        return [];
+    };
+
+    // Helper function to get nutrition values
+    const getNutritionValue = (nutrientName: string) => {
+        if (!recipe?.nutrition?.nutrients) return 'N/A';
+        const nutrient = recipe.nutrition.nutrients.find(n =>
+            n.name.toLowerCase().includes(nutrientName.toLowerCase())
+        );
+        return nutrient ? `${nutrient.amount} ${nutrient.unit}` : 'N/A';
+    };
+
+    // Helper function to get cook time
+    const getCookTime = () => {
+        return recipe?.readyInMinutes || recipe?.cookTime || 0;
+    };
+
+    // Helper function to get servings
+    const getServings = () => {
+        return recipe?.servings || 0;
+    };
+
+    // Helper function to get rating
+    const getRating = () => {
+        const score = recipe?.rating || recipe?.aggregateLikes || 0;
+        // Convert all Spoonacular scores to 5-star rating
+        return score / 20;
+    };
+
+    // Helper function to get cuisines
+    const getCuisines = () => {
+        return recipe?.cuisines || (recipe?.cuisine ? [recipe.cuisine] : []);
+    };
+
+    // Helper function to get diets
+    const getDiets = () => {
+        return recipe?.diets || recipe?.diet || [];
+    };
+
+    if (loading) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center">
-                <h2 className="text-2xl font-bold mb-4 text-foreground">Recipe Not Found</h2>
-                <Link to="/recipes" className="allerchef-btn-secondary">Back to Recipes</Link>
+            <div className="min-h-screen bg-[#E6F2EA] pt-16">
+                <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-3 sm:mt-4 text-muted-foreground text-sm sm:text-base">Loading recipe...</p>
+                    </div>
+                </div>
             </div>
         );
     }
 
+    if (error || !recipe) {
+        return (
+            <div className="min-h-screen bg-[#E6F2EA] pt-16">
+                <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+                    <div className="text-center">
+                        <p className="text-red-500 mb-3 sm:mb-4 text-sm sm:text-base">{error || 'Recipe not found'}</p>
+                        <Link to="/recipes" className="allerchef-btn-primary text-sm sm:text-base">
+                            Back to Recipes
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const ingredients = getIngredients();
+    const cookTime = getCookTime();
+    const servings = getServings();
+    const rating = getRating();
+    const cuisines = getCuisines();
+    const diets = getDiets();
+
     return (
-        <>
-            <Link to="/recipes" className="inline-flex items-center gap-2 mb-6 text-green-700 hover:underline">
-                <ChevronLeft className="h-5 w-5" /> Back to Recipes
-            </Link>
-            <div className="allerchef-card bg-[#fafaf7] p-6 md:p-10 flex flex-col md:flex-row gap-8">
-                <img src={recipe.image} alt={recipe.title} className="w-full md:w-80 h-56 object-cover rounded-2xl shadow mb-6 md:mb-0" />
-                <div className="flex-1 flex flex-col gap-4">
-                    <h1 className="text-3xl font-bold text-green-800 mb-2">{recipe.title}</h1>
-                    <div className="flex flex-wrap gap-3 mb-2">
-                        {recipe.tags.map(tag => (
-                            <span key={tag} className="allerchef-pill bg-secondary text-secondary-foreground text-xs px-3 py-1 rounded-full font-medium">{tag}</span>
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-6 text-muted-foreground text-sm mb-2">
-                        <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {recipe.cookTime}</span>
-                        <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {recipe.servings} servings</span>
-                        <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> 4.8</span>
-                    </div>
-                    <div className="flex gap-6">
-                        <div className="text-sm"><span className="font-medium">{recipe.calories}</span> cal</div>
-                        <div className="text-sm"><span className="font-medium">{recipe.protein}</span> protein</div>
-                    </div>
-                </div>
-            </div>
-            {/* Ingredients & Instructions */}
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="allerchef-card bg-[#fafaf7] p-6">
-                    <h2 className="text-xl font-semibold mb-3 text-green-800">Ingredients</h2>
-                    <ul className="list-disc list-inside space-y-2 text-foreground">
-                        {recipe.ingredients.map((ing, i) => (
-                            <li key={i}>{ing}</li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="allerchef-card bg-[#fafaf7] p-6">
-                    <h2 className="text-xl font-semibold mb-3 text-green-800">Instructions</h2>
-                    <ol className="list-decimal list-inside space-y-2 text-foreground">
-                        {recipe.instructions.map((step, i) => (
-                            <li key={i}>{step}</li>
-                        ))}
-                    </ol>
-                </div>
-            </div>
-            {/* Nutrition Info */}
-            <div className="mt-10 allerchef-card bg-[#fafaf7] p-6">
-                <h2 className="text-xl font-semibold mb-3 text-green-800">Nutrition Information</h2>
-                <div className="bg-white rounded-xl shadow p-4 flex flex-wrap gap-6">
-                    {Object.entries(recipe.nutrition).map(([key, value]) => (
-                        <div key={key} className="text-sm text-foreground">
-                            <span className="font-medium">{key}:</span> {value}
+        <div className="min-h-screen bg-[#E6F2EA] pt-16">
+            <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+                {/* Back Button */}
+                <Link
+                    to="/recipes"
+                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 sm:mb-6 text-sm sm:text-base"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Recipes
+                </Link>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2">
+                        {/* Recipe Header */}
+                        <div className="allerchef-card mb-6 sm:mb-8">
+                            <div className="relative mb-4 sm:mb-6">
+                                <img
+                                    src={recipe.image}
+                                    alt={recipe.title}
+                                    className="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-xl"
+                                />
+                                {isLoggedIn && (
+                                    <button
+                                        onClick={handleLikeToggle}
+                                        className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 sm:p-3 bg-white/90 rounded-full hover:bg-white transition-all duration-300"
+                                    >
+                                        <Heart
+                                            className={`h-5 w-5 sm:h-6 sm:w-6 ${isRecipeSaved(recipe._id || recipe.id?.toString() || '')
+                                                ? 'fill-red-500 text-red-500'
+                                                : 'text-muted-foreground'
+                                                }`}
+                                        />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                                    {recipe.title}
+                                </h1>
+
+                                {/* Recipe Stats */}
+                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                                    {cookTime > 0 && (
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                                            {cookTime} minutes
+                                        </div>
+                                    )}
+                                    {servings > 0 && (
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                                            {servings} servings
+                                        </div>
+                                    )}
+                                    {rating > 0 && (
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                                            {rating.toFixed(1)} ({recipe.reviewCount || 0} reviews)
+                                        </div>
+                                    )}
+                                    {recipe.difficulty && (
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <ChefHat className="h-3 w-3 sm:h-4 sm:w-4" />
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
+                                                {recipe.difficulty}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Tags */}
+                                {(recipe.tags && recipe.tags.length > 0) && (
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                        {recipe.tags.map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="px-2 sm:px-3 py-1 bg-secondary text-secondary-foreground text-xs sm:text-sm rounded-full font-medium"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Diet Info */}
+                                {diets.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                        {diets.map((diet) => (
+                                            <span
+                                                key={diet}
+                                                className="px-2 sm:px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm rounded-full font-medium"
+                                            >
+                                                {diet}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    ))}
+
+                        {/* Recipe Summary */}
+                        {recipe.summary && (
+                            <div className="allerchef-card mb-6 sm:mb-8 p-4 sm:p-6">
+                                <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-foreground">About This Recipe</h2>
+                                <div
+                                    className="prose prose-sm max-w-none text-muted-foreground text-sm sm:text-base"
+                                    dangerouslySetInnerHTML={{ __html: recipe.summary }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Ingredients */}
+                        {ingredients.length > 0 && (
+                            <div className="allerchef-card mb-6 sm:mb-8 p-4 sm:p-6">
+                                <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-foreground flex items-center gap-2">
+                                    <Utensils className="h-5 w-5 sm:h-6 sm:w-6" />
+                                    Ingredients
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                                    {ingredients.map((ingredient, index) => (
+                                        <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-secondary/50 rounded-lg">
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full flex-shrink-0"></div>
+                                            <span className="font-medium text-xs sm:text-sm">{ingredient.amount} {ingredient.unit}</span>
+                                            <span className="text-muted-foreground text-xs sm:text-sm">{ingredient.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Instructions */}
+                        {recipe.instructions && (
+                            <div className="allerchef-card p-4 sm:p-6">
+                                <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-foreground">Instructions</h2>
+                                <div
+                                    className="prose prose-sm max-w-none text-muted-foreground text-sm sm:text-base"
+                                    dangerouslySetInnerHTML={{ __html: recipe.instructions }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-4 sm:space-y-6">
+                        {/* Nutrition Facts */}
+                        <div className="allerchef-card p-4 sm:p-6">
+                            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground">Nutrition Facts</h3>
+                            <div className="space-y-2 sm:space-y-3">
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted-foreground text-sm">Calories</span>
+                                    <span className="font-semibold text-sm">{getNutritionValue('calories')}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted-foreground text-sm">Protein</span>
+                                    <span className="font-semibold text-sm">{getNutritionValue('protein')}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted-foreground text-sm">Fat</span>
+                                    <span className="font-semibold text-sm">{getNutritionValue('fat')}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2">
+                                    <span className="text-muted-foreground text-sm">Carbohydrates</span>
+                                    <span className="font-semibold text-sm">{getNutritionValue('carbohydrates')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recipe Info */}
+                        <div className="allerchef-card p-4 sm:p-6">
+                            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground">Recipe Info</h3>
+                            <div className="space-y-2 sm:space-y-3">
+                                {cuisines.length > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground text-sm">Cuisine</span>
+                                        <span className="font-medium text-sm">{cuisines.join(', ')}</span>
+                                    </div>
+                                )}
+                                {recipe.difficulty && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground text-sm">Difficulty</span>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
+                                            {recipe.difficulty}
+                                        </span>
+                                    </div>
+                                )}
+                                {rating > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground text-sm">Rating</span>
+                                        <div className="flex items-center gap-1">
+                                            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                                            <span className="font-medium text-sm">{rating.toFixed(1)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Save Recipe */}
+                        {isLoggedIn && (
+                            <div className="allerchef-card p-4 sm:p-6">
+                                <button
+                                    onClick={handleLikeToggle}
+                                    className={`w-full py-2 sm:py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base ${isRecipeSaved(recipe._id || recipe.id?.toString() || '')
+                                        ? 'bg-red-500 text-white hover:bg-red-600'
+                                        : 'bg-primary text-white hover:bg-primary/90'
+                                        }`}
+                                >
+                                    <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${isRecipeSaved(recipe._id || recipe.id?.toString() || '') ? 'fill-current' : ''}`} />
+                                    {isRecipeSaved(recipe._id || recipe.id?.toString() || '') ? 'Remove from Saved' : 'Save Recipe'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
