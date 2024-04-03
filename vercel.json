@@ -1,0 +1,34 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        },
+        {
+            "src": "api/**/*.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ],
+    "env": {
+        "MONGODB_URI": "@mongodb_uri",
+        "JWT_SECRET": "@jwt_secret",
+        "SPOONACULAR_API_KEY": "@spoonacular_api_key",
+        "NEWSDATA_API_KEY": "@newsdata_api_key",
+        "GOOGLE_CLIENT_ID": "@google_client_id",
+        "GOOGLE_CLIENT_SECRET": "@google_client_secret"
+    }
+}
