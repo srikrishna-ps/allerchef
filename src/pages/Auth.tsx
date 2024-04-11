@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Facebook } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
+import { useAuthStore } from "@/context/AuthContext";
 
 function validatePassword(password: string) {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
 }
 
-const AuthModal = ({ open, onClose, hideClose = false }: { open: boolean, onClose: () => void, hideClose?: boolean }) => {
+const AuthModal = ({ open, onClose, hideClose = false, clearFieldsOnClose = false }: { open: boolean, onClose: () => void, hideClose?: boolean, clearFieldsOnClose?: boolean }) => {
     const [mode, setMode] = useState<'login' | 'register'>('login');
     const [showPassword, setShowPassword] = useState(false);
     const [showRegPassword, setShowRegPassword] = useState(false);
@@ -20,6 +21,33 @@ const AuthModal = ({ open, onClose, hideClose = false }: { open: boolean, onClos
     const [regPassword, setRegPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login, register } = useAuthStore();
+
+    function clearFields() {
+        setLoginEmail('');
+        setLoginPassword('');
+        setRegName('');
+        setRegEmail('');
+        setRegPassword('');
+    }
+
+    useEffect(() => {
+        if (!open && clearFieldsOnClose) {
+            clearFields();
+            setError('');
+        }
+    }, [open, clearFieldsOnClose]);
+
+    useEffect(() => {
+        // Handle Google OAuth callback
+        const params = new URLSearchParams(location.search);
+        const token = params.get('token');
+        if (token) {
+            localStorage.setItem('allerchef_token', token);
+            window.location.replace('/'); // Redirect to home or desired page
+        }
+    }, [location.search]);
 
     if (!open) return null;
 
@@ -39,7 +67,7 @@ const AuthModal = ({ open, onClose, hideClose = false }: { open: boolean, onClos
         </svg>
     );
 
-    function handleRegister(e: React.FormEvent) {
+    async function handleRegister(e: React.FormEvent) {
         e.preventDefault();
         setError('');
         if (!regName || !regEmail || !regPassword) {
@@ -50,41 +78,33 @@ const AuthModal = ({ open, onClose, hideClose = false }: { open: boolean, onClos
             setError('Password must be at least 8 characters, include upper, lower, number, and symbol.');
             return;
         }
-        if (localStorage.getItem('allerchef_user')) {
-            const user = JSON.parse(localStorage.getItem('allerchef_user')!);
-            if (user.email === regEmail) {
-                setError('User already exists. Please log in.');
-                return;
-            }
+        try {
+            await register(regName, regEmail, regPassword);
+            setError('');
+            window.alert('Registration successful!');
+            clearFields();
+            onClose();
+            navigate('/');
+        } catch (error) {
+            setError('Registration failed.');
+            window.alert('Registration failed.');
         }
-        localStorage.setItem('allerchef_user', JSON.stringify({ name: regName, email: regEmail, password: regPassword }));
-        window.dispatchEvent(new Event('storage'));
-        setError('');
-        onClose();
-        navigate('/');
     }
 
-    function handleLogin(e: React.FormEvent) {
+    async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
         setError('');
-        const userStr = localStorage.getItem('allerchef_user');
-        if (!userStr) {
-            setError('No user found. Please sign up.');
-            return;
+        try {
+            await login(loginEmail, loginPassword);
+            setError('');
+            window.alert('Login successful!');
+            clearFields();
+            onClose();
+            navigate('/');
+        } catch (error) {
+            setError('Login failed.');
+            window.alert('Login failed.');
         }
-        const user = JSON.parse(userStr);
-        if (user.email !== loginEmail) {
-            setError('Email not found.');
-            return;
-        }
-        if (user.password !== loginPassword) {
-            setError('Incorrect password.');
-            return;
-        }
-        window.dispatchEvent(new Event('storage'));
-        setError('');
-        onClose();
-        navigate('/');
     }
 
     return (
@@ -121,11 +141,8 @@ const AuthModal = ({ open, onClose, hideClose = false }: { open: boolean, onClos
                     </div>
                     {/* Social Login Buttons */}
                     <div className="flex flex-col gap-3 mb-6">
-                        <Button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 font-semibold shadow-sm hover:bg-gray-50 transition-all rounded-xl" type="button" onClick={() => window.location.href = 'https://accounts.google.com/signin'}>
+                        <Button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 font-semibold shadow-sm hover:bg-gray-50 transition-all rounded-xl" type="button" onClick={() => window.location.href = '/api/auth/google'}>
                             {GoogleIcon} Continue with Google
-                        </Button>
-                        <Button className="w-full flex items-center justify-center gap-2 bg-[#1877f3] text-white font-semibold shadow-sm hover:bg-[#145dc2] transition-all rounded-xl" type="button" onClick={() => window.location.href = 'https://www.facebook.com/login'}>
-                            <Facebook className="h-5 w-5 mr-2" /> Continue with Facebook
                         </Button>
                     </div>
                     <div className="relative flex items-center mb-6">
