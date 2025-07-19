@@ -12,4 +12,5 @@ const App = () => (
   </BrowserRouter>
 );
 
+// Test comment: Auto-deploy should trigger when this is pushed
 export default App;
