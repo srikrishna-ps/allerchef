@@ -1,7 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDB } from '../lib/db';
-import { User } from '../models/User';
-import jwt from 'jsonwebtoken';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enable CORS
@@ -23,30 +20,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        await connectDB();
-
-        // For now, redirect to Google OAuth URL
-        // You'll need to set up Google OAuth credentials in your Google Cloud Console
-        const googleClientId = process.env.GOOGLE_CLIENT_ID;
-
-        if (!googleClientId) {
-            return res.status(500).json({
-                message: 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID environment variable.'
-            });
-        }
-
-        const origin = (req.headers as any).origin || (req.headers as any).host || 'https://your-domain.vercel.app';
-        const redirectUri = `${origin}/auth/callback`;
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${googleClientId}&` +
-            `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-            `response_type=code&` +
-            `scope=${encodeURIComponent('openid email profile')}&` +
-            `access_type=offline&` +
-            `prompt=consent`;
-
-        res.setHeader('Location', googleAuthUrl);
-        res.status(302).end();
+        // For now, just return a message instead of redirecting
+        // This will help us test if the endpoint works without database issues
+        return res.status(200).json({
+            message: 'Google OAuth endpoint is working!',
+            note: 'Google OAuth needs to be configured with proper credentials and database setup.',
+            nextSteps: [
+                '1. Set up Google OAuth credentials in Google Cloud Console',
+                '2. Add GOOGLE_CLIENT_ID to Vercel environment variables',
+                '3. Configure database connection for user storage'
+            ]
+        });
 
     } catch (error) {
         console.error("Error in Google OAuth API:", error);
