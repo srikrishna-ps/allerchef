@@ -18,6 +18,14 @@ import AuthPage from "./pages/AuthPage";
 
 const queryClient = new QueryClient();
 
+// Simple test component
+const TestComponent = () => (
+  <div style={{ padding: '20px', textAlign: 'center' }}>
+    <h1>AllerChef Test</h1>
+    <p>If you can see this, React is working!</p>
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -26,7 +34,7 @@ const App = () => (
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<TestComponent />} />
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/saved" element={<Saved />} />
             <Route path="/dieticians" element={<Dieticians />} />
